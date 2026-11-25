@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>개발 기록</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --bg: #f4f4f7; --card: #fff; --line: #e4e4ea; --ink: #16161d; --sub: #5d5d6b; --faint: #8a8a98;
+    --accent: #b45309; --req: #be123c; --doing: #1d4ed8; --done: #15803d; --hold: #64748b; --changed: #7c3aed;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: Pretendard, -apple-system, "Malgun Gothic", sans-serif; word-break: keep-all; line-height: 1.55; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 80px; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--accent); }
+  select { font: inherit; font-size: 14px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+  h1 { font-size: 34px; margin: 10px 0 8px; letter-spacing: -.02em; }
+  .lead { color: var(--sub); font-size: 14.5px; margin: 0 0 22px; white-space: pre-line; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  .tab { border: 0; background: none; font: inherit; font-size: 15px; padding: 9px 12px; color: var(--sub); cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.on { color: var(--ink); font-weight: 700; border-color: var(--ink); }
+  .bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; font-size: 13px; color: var(--sub); }
+  .bar b { color: var(--ink); }
+  .btns button { font: inherit; font-size: 13px; padding: 6px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); cursor: pointer; }
+  .btns button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .day { font-size: 13px; color: var(--sub); margin: 22px 0 8px; font-weight: 600; }
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; }
+  summary { list-style: none; cursor: pointer; padding: 13px 16px; display: grid; grid-template-columns: 46px 1fr 14px; gap: 4px 10px; align-items: start; }
+  summary::-webkit-details-marker { display: none; }
+  .time { font-size: 12.5px; color: var(--faint); font-variant-numeric: tabular-nums; padding-top: 2px; }
+  .title { font-weight: 700; font-size: 15px; }
+  .arrow { color: var(--faint); font-size: 11px; padding-top: 4px; transition: transform .15s; }
+  details[open] .arrow { transform: rotate(90deg); }
+  .chips { grid-column: 2; display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { font-size: 11.5px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--line); color: var(--sub); }
+  .st { color: #fff; border: 0; font-weight: 700; }
+  .st-요청 { background: var(--req); } .st-진행 { background: var(--doing); } .st-완료 { background: var(--done); }
+  .st-보류 { background: var(--hold); } .st-바뀜 { background: var(--changed); }
+  .ver { border-color: #86efac; color: var(--done); }
+  .body { padding: 0 16px 14px 72px; font-size: 14px; color: var(--sub); white-space: pre-line; }
+  .body code { font-size: 12.5px; background: #f1f1f5; padding: 1px 5px; border-radius: 4px; }
+  .empty { color: var(--faint); padding: 40px 0; text-align: center; }
+  #gate { position: fixed; inset: 0; background: var(--bg); display: grid; place-items: center; z-index: 9; }
+  #gate[hidden] { display: none; }
+  .gatebox { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 26px 24px; width: min(320px, 90vw); display: grid; gap: 10px; }
+  .gatebox label { font-weight: 700; font-size: 17px; }
+  .gatebox input, .gatebox button { width: 100%; min-width: 0; }
+  .gatebox input { font: inherit; font-size: 20px; letter-spacing: .2em; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+  .gatebox button { font: inherit; font-weight: 700; padding: 10px; border: 0; border-radius: 10px; background: var(--ink); color: #fff; cursor: pointer; }
+  #gateMsg { font-size: 13px; color: var(--req); min-height: 1em; }
+  @media (max-width: 520px) { h1 { font-size: 27px; } .body { padding-left: 16px; } }
+</style>
+</head>
+<body>
+<div id="gate" hidden>
+  <form id="gateForm" class="gatebox">
+    <div class="eyebrow">개발 기록</div>
+    <label for="pass">번호를 넣어 주세요</label>
+    <input id="pass" type="password" inputmode="numeric" autocomplete="current-password">
+    <button type="submit">열기</button>
+    <div id="gateMsg"></div>
+  </form>
+</div>
+<div class="wrap">
+  <div class="top">
+    <div class="eyebrow" id="eyebrow"></div>
+    <select id="pick" aria-label="프로젝트 고르기"></select>
+  </div>
+  <h1 id="name"></h1>
+  <p class="lead" id="lead"></p>
+  <div class="tabs" id="tabs"></div>
+  <div class="bar">
+    <div id="counts"></div>
+    <div class="btns">
+      <button id="onlyDoing">진행 중만</button>
+      <button id="openAll">모두 펼치기</button>
+    </div>
+  </div>
+  <div id="list"></div>
+</div>
+
+<!-- 프로젝트 목록 → 각 폴더의 log.js 를 차례로 읽는다(file:// 로 열어도 되게 fetch 대신 script) -->
+<script>
+  window.DEVLOG = { projects: {}, add(id, p) { this.projects[id] = p; } };
+</script>
+<!-- 공개판(깃허브 페이지)은 projects.js·log.js 없이 암호문 data.enc.js 만 — 번호를 넣어야 풀린다(tools/build_public.mjs) -->
+<script src="projects.js"></script>
+<script src="data.enc.js"></script>
+<script>
+function start() {
+  const TABS = [['요청', '요청'], ['개선', '개선 목록'], ['배포', '배포 내역']];
+  const STATUS = ['요청', '진행 중', '완료', '보류', '바뀜'];
+  const q = new URLSearchParams(location.search);
+  // 주소의 p·tab 은 목록에 있는 값만 받는다 — 아무 값이나 script src 로 넣지 않게
+  const IDS = new Set(PROJECTS.map((p) => p.id));
+  let cur = IDS.has(q.get('p')) ? q.get('p') : PROJECTS[0].id,
+    tab = TABS.some(([k]) => k === q.get('tab')) ? q.get('tab') : '요청', onlyDoing = false, allOpen = false;
+
+  const pick = document.getElementById('pick');
+  for (const p of PROJECTS) pick.add(new Option(p.name, p.id));
+
+  function load(id, done) {
+    if (!IDS.has(id)) return done();
+    if (DEVLOG.projects[id]) return done();
+    const s = document.createElement('script');
+    s.src = id + '/log.js';
+    s.onload = done;
+    s.onerror = () => { DEVLOG.add(id, { items: [] }); done(); };
+    document.head.appendChild(s);
+  }
+
+  const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const md = (t) => esc(t).replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  function render() {
+    const meta = PROJECTS.find((p) => p.id === cur) || PROJECTS[0];
+    const p = DEVLOG.projects[cur] || { items: [] };
+    pick.value = cur;
+    document.title = meta.name + ' — 개발 기록';
+    document.getElementById('eyebrow').textContent = p.eyebrow || meta.eyebrow || '';
+    document.getElementById('name').textContent = meta.name + ' 개발 기록';
+    document.getElementById('lead').textContent = p.lead || '';
+
+    const tabs = document.getElementById('tabs');
+    tabs.innerHTML = '';
+    for (const [k, label] of TABS) {
+      const n = p.items.filter((i) => i.kind === k).length;
+      const b = document.createElement('button');
+      b.className = 'tab' + (k === tab ? ' on' : '');
+      b.textContent = label + (n ? ` ${n}` : '');
+      b.onclick = () => { tab = k; sync(); render(); };
+      tabs.appendChild(b);
+    }
+
+    const items = p.items.filter((i) => i.kind === tab);
+    const cnt = Object.fromEntries(STATUS.map((s) => [s, items.filter((i) => i.status === s).length]));
+    document.getElementById('counts').innerHTML =
+      `전체 <b>${items.length}</b>건 · ` + STATUS.filter((s) => cnt[s]).map((s) => `${s} <b>${cnt[s]}</b>건`).join(' · ');
+    document.getElementById('onlyDoing').className = onlyDoing ? 'on' : '';
+
+    const shown = items
+      .filter((i) => !onlyDoing || i.status === '진행 중' || i.status === '요청')
+      .sort((a, b) => (b.date + (b.time || '')).localeCompare(a.date + (a.time || '')));
+    const list = document.getElementById('list');
+    if (!shown.length) { list.innerHTML = '<div class="empty">아직 기록이 없습니다.</div>'; return; }
+    let html = '', day = '';
+    const wd = ['일', '월', '화', '수', '목', '금', '토'];
+    for (const i of shown) {
+      if (i.date !== day) {
+        day = i.date;
+        const d = new Date(day + 'T00:00:00');
+        html += `<div class="day">${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${wd[d.getDay()]}</div>`;
+      }
+      const st = (i.status || '').split(' ')[0];
+      html += `<details${allOpen ? ' open' : ''}><summary>
+        <span class="time">${esc(i.time || '')}</span><span class="title">${esc(i.title)}</span><span class="arrow">▶</span>
+        <span class="chips"><span class="chip st st-${esc(st)}">${esc(i.status)}</span>
+        ${(i.tags || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}
+        ${i.ver ? `<span class="chip ver">${esc(i.ver)}</span>` : ''}</span>
+      </summary>${i.body ? `<div class="body">${md(i.body)}</div>` : ''}</details>`;
+    }
+    list.innerHTML = html;
+  }
+
+  function sync() {
+    const u = new URL(location.href);
+    u.searchParams.set('p', cur);
+    u.searchParams.set('tab', tab);
+    history.replaceState(null, '', u);
+  }
+
+  pick.onchange = () => { cur = pick.value; sync(); load(cur, render); };
+  document.getElementById('onlyDoing').onclick = () => { onlyDoing = !onlyDoing; render(); };
+  document.getElementById('openAll').onclick = () => { allOpen = !allOpen; render(); };
+  load(cur, render);
+}
+
+// ── 번호 잠금 — 공개판에만 있다. 번호로 열쇠를 만들어(PBKDF2) 암호문을 푼다(AES-GCM). 번호는 어디에도 적혀 있지 않다 ──
+async function unlock(pass) {
+  const E = window.DEVLOG_ENC, b = (t) => Uint8Array.from(atob(t), (c) => c.charCodeAt(0));
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(E.salt), iterations: E.iter, hash: 'SHA-256' },
+    base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b(E.iv) }, key, b(E.ct));
+  const d = JSON.parse(new TextDecoder().decode(plain));
+  window.PROJECTS = d.projects;
+  for (const [id, p] of Object.entries(d.logs)) DEVLOG.add(id, p);
+}
+
+if (window.DEVLOG_ENC) {
+  const gate = document.getElementById('gate'), inp = document.getElementById('pass'), msg = document.getElementById('gateMsg');
+  gate.hidden = false;
+  const saved = sessionStorage.getItem('devlog-pass');
+  const go = async (pass) => {
+    msg.textContent = '여는 중…';
+    try {
+      await unlock(pass);
+      sessionStorage.setItem('devlog-pass', pass); // 이 탭을 닫기 전까지만 기억
+      gate.hidden = true;
+      start();
+    } catch (e) {
+      sessionStorage.removeItem('devlog-pass');
+      msg.textContent = '번호가 맞지 않습니다.';
+      inp.select();
+    }
+  };
+  document.getElementById('gateForm').onsubmit = (e) => { e.preventDefault(); go(inp.value.trim()); };
+  if (saved) go(saved); else inp.focus();
+} else {
+  start();
+}
+</script>
+</body>
+</html>
